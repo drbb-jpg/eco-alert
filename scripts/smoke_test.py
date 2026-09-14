@@ -138,4 +138,15 @@ finally:
     for picture in sorted(OUT.glob("*.png")):
         lines += ["", "### " + picture.stem, "", "![" + picture.stem + "](" + picture.name + ")"]
     (OUT / "README.md").write_text("\n".join(lines), encoding="utf-8")
+# Expose these demo-only screenshots to the connected test viewer without repository writes.
+import base64
+print("ECO_REPORT:" + json.dumps(report, ensure_ascii=False), flush=True)
+for name in ["01-aujourdhui", "03-semaine", "05-alertes", "99-echec"]:
+    picture = OUT / (name + ".png")
+    if picture.exists():
+        encoded = base64.b64encode(picture.read_bytes()).decode("ascii")
+        print("ECO_IMAGE_START:" + name, flush=True)
+        for i in range(0, len(encoded), 4096):
+            print("ECO_IMAGE_DATA:" + encoded[i:i+4096], flush=True)
+        print("ECO_IMAGE_END:" + name, flush=True)
 if failed: raise failed
