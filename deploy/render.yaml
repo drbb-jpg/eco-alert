@@ -1,0 +1,38 @@
+# Deployment proposal only. Creating this file does not provision a service.
+# Review hosting cost and provider redistribution rights before importing.
+# Blueprint path: deploy/render.yaml
+services:
+  - type: web
+    name: eco-alert-api
+    runtime: node
+    repo: https://github.com/drbb-jpg/eco-alert
+    branch: feature/android-calendar
+    rootDir: server
+    region: frankfurt
+    plan: starter
+    numInstances: 1
+    autoDeployTrigger: "off"
+    buildCommand: npm install --omit=dev && npm test && node --check src/server.mjs
+    startCommand: node src/server.mjs
+    healthCheckPath: /health
+    disk:
+      name: eco-alert-state
+      mountPath: /var/data
+      sizeGB: 1
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
+      - key: NODE_ENV
+        value: production
+      - key: DATA_DIR
+        value: /var/data
+      - key: TE_CREDENTIAL
+        sync: false
+      - key: POLL_MS
+        value: "60000"
+      - key: ENABLE_STREAM
+        value: "true"
+      - key: ENABLE_PUSH
+        value: "false"
+      - key: GOOGLE_APPLICATION_CREDENTIALS
+        value: /etc/secrets/firebase-admin.json
