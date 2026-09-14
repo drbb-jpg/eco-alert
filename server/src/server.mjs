@@ -16,6 +16,7 @@ const statePath=join(dataDir,'state.json');
 let state={events:{},sent:{},updatedAt:null};
 try{state=JSON.parse(await readFile(statePath,'utf8'));}catch(e){if(e.code!=='ENOENT')throw e;}
 if(!state.events||!state.sent)throw new Error('Invalid state file');
+state.pending ||= {};
 const push=process.env.ENABLE_PUSH==='true';
 if(push)initializeApp({credential:applicationDefault()});
 let snapshotHealthy=false,streamOpen=false;
@@ -38,11 +39,24 @@ async function apply(next,notify){
   const previous=state.events[next.id];
   state.events[next.id]=next;
   if(notify&&initialRelease(previous,next,Date.now())){
-    await sendOnce('result:'+next.id,'eco-results',{
-      kind:'result',title:next.title+' · résultat',
-      body:'Réel : '+next.actual+' | Prévu : '+(next.forecast??'—')+' | Précédent : '+(next.previous??'—')
-    },300000);
+    state.pending[next.id]={event:next,expires:Date.now()+300000};
+    await persist();
+    await dispatchResults();
   }
+}
+async function dispatchResults(){
+  for(const [id, pending] of Object.entries(state.pending)){
+    if(pending.expires<=Date.now()){delete state.pending[id];continue;}
+    const next=pending.event;
+    try{
+      await sendOnce('result:'+id,'eco-results',{
+        kind:'result',title:next.title+' · résultat',
+        body:'Réel : '+next.actual+' | Prévu : '+(next.forecast??'—')+' | Précédent : '+(next.previous??'—')
+      },pending.expires-Date.now());
+      delete state.pending[id];
+    }catch{console.error('Result delivery pending; will retry within expiry');}
+  }
+  await persist();
 }
 async function snapshot(){
   const [from,to]=dateRange();
@@ -71,6 +85,7 @@ await poll();
 setInterval(poll,pollMs);
 function isStale(){return !snapshotHealthy||!state.updatedAt||Date.now()-Date.parse(state.updatedAt)>staleAfter;}
 setInterval(()=>serial(async()=>{
+  await dispatchResults();
   if(isStale())return;
   for(const e of Object.values(state.events))for(const m of [5,15,30])
     if(reminderDue(e,m,Date.now()))await sendOnce('before:'+e.id+':'+e.time+':'+m,'eco-before-'+m,

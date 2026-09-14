@@ -5,9 +5,9 @@ import com.google.firebase.*;
 
 public class EcoApplication extends Application {
     public static boolean pushReady() {
-        return !BuildConfig.API_BASE_URL.isBlank() && !BuildConfig.FIREBASE_APP_ID.isBlank()
-            && !BuildConfig.FIREBASE_API_KEY.isBlank() && !BuildConfig.FIREBASE_PROJECT_ID.isBlank()
-            && !BuildConfig.FIREBASE_SENDER_ID.isBlank();
+        return !BuildConfig.API_BASE_URL.trim().isEmpty() && !BuildConfig.FIREBASE_APP_ID.trim().isEmpty()
+            && !BuildConfig.FIREBASE_API_KEY.trim().isEmpty() && !BuildConfig.FIREBASE_PROJECT_ID.trim().isEmpty()
+            && !BuildConfig.FIREBASE_SENDER_ID.trim().isEmpty();
     }
     @Override public void onCreate() {
         super.onCreate();

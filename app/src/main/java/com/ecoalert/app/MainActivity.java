@@ -40,7 +40,7 @@ public class MainActivity extends Activity {
             handler.postDelayed(this,15000);
         }
     };
-    private boolean demo() { return BuildConfig.API_BASE_URL.isBlank(); }
+    private boolean demo() { return BuildConfig.API_BASE_URL.trim().isEmpty(); }
     private int dp(int n) { return Math.round(n*getResources().getDisplayMetrics().density); }
     private TextView label(String s,int size,int color) {
         TextView t=new TextView(this); t.setText(s); t.setTextSize(size); t.setTextColor(color);
@@ -119,7 +119,7 @@ public class MainActivity extends Activity {
             card.addView(label(date+"  ·  "+(e.country.equals("US")?"États-Unis":"Zone euro")+"  ·  "+
                 (e.importance==3?"● Majeure":e.importance==2?"● Moyenne":"● Faible")+(e.tentative?" · Horaire indicatif":""),12,impact));
             TextView name=label(e.title,19,INK); name.setTypeface(null,Typeface.BOLD); card.addView(name);
-            if (!e.reference.isBlank()) card.addView(label(e.reference,12,MUTED));
+            if (!e.reference.trim().isEmpty()) card.addView(label(e.reference,12,MUTED));
             LinearLayout values=new LinearLayout(this);
             String[] labels={"Précédent","Prévu","Réel"}; String[] nums={e.previous,e.forecast,e.actual};
             for(int i=0;i<3;i++) {
@@ -160,7 +160,7 @@ public class MainActivity extends Activity {
     }
     private void updateStatus() {
         if(status==null)return;
-        status.setText(demo()?"DÉMONSTRATION · données fictives":(stale?"HORS LIGNE / DONNÉES ANCIENNES":"CONNECTÉ")+" · "+(lastUpdate.isBlank()?"en attente":lastUpdate));
+        status.setText(demo()?"DÉMONSTRATION · données fictives":(stale?"HORS LIGNE / DONNÉES ANCIENNES":"CONNECTÉ")+" · "+(lastUpdate.trim().isEmpty()?"en attente":lastUpdate));
         status.setTextColor(stale&&!demo()?RED:MINT);
     }
     private void showSettings() {
@@ -242,7 +242,7 @@ public class MainActivity extends Activity {
         });
     }
     private static String optional(JSONObject o,String key) {
-        String s=o.optString(key,"");return o.isNull(key)||s.isBlank()?null:s;
+        String s=o.optString(key,"");return o.isNull(key)||s.trim().isEmpty()?null:s;
     }
     private List<Event> parse(JSONArray array)throws JSONException {
         List<Event> result=new ArrayList<>();

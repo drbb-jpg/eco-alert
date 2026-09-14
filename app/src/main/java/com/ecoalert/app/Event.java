@@ -19,7 +19,7 @@ public final class Event {
         LocalDate monday = today.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
         return week ? !date.isBefore(monday) && date.isBefore(monday.plusDays(7)) : date.equals(today);
     }
-    public static String display(String value) { return value == null || value.isBlank() ? "—" : value; }
+    public static String display(String value) { return value == null || value.trim().isEmpty() ? "—" : value; }
     public static String comparison(String actual, String forecast) {
         if (actual == null || forecast == null) return "";
         // Compare only like-for-like simple numbers, percentages or magnitude suffixes.
